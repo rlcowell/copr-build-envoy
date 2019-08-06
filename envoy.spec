@@ -1,6 +1,6 @@
 # this is just a monotonically increasing number to preceed the git hash, to get incremented on every git bump
 %global git_bump		0
-%global git_commit		f3b0f8580041649bf300a962674a2cf3f3bd1385
+%global git_commit		bf169f9d3c8f4c682650c5390c088a4898940913
 %global git_shortcommit		%(c=%{git_commit}; echo ${c:0:7})
 
 # don't strip binaries at all
@@ -15,7 +15,7 @@
 %define _disable_source_fetch 0
 
 Name:		envoy
-Version:	1.7.1.%{git_bump}.git.%{git_shortcommit}
+Version:	1.11.1.%{git_bump}.git.%{git_shortcommit}
 Release:	1%{?dist}
 Summary:	Envoy is an open source edge and service proxy
 
@@ -25,7 +25,7 @@ URL:		https://github.com/envoyproxy/envoy
 #Source0:	https://github.com/envoyproxy/%{name}/archive/v%{version}.tar.gz
 Source0:	https://github.com/envoyproxy/envoy/archive/%{git_commit}.zip
 
-Patch0:		741f16d8e.diff
+#Patch0:		741f16d8e.diff
 
 # see https://copr.fedorainfracloud.org/coprs/vbatts/bazel/
 BuildRequires:	bazel
@@ -73,7 +73,7 @@ Requires:	%{name} = %{version}-%{release}
 %prep
 sha1sum %{SOURCE0}
 %setup -q -n %{name}-%{git_commit}
-%patch0 -p1
+#%patch0 -p1
 
 %build
 
@@ -86,17 +86,25 @@ echo -n "%{git_commit}" > SOURCE_VERSION
 
 # naming hack ..
 export mypath=$(mktemp -d)
-export PATH=$mypath:$PATH
+export PATH=$mypath:i$PATH
+export CC=gcc
+export CXX=g++
+
 ln -sf /usr/bin/ninja-build ${mypath}/ninja # https://bugzilla.redhat.com/show_bug.cgi?id=1608565
 ln -sf /usr/bin/cmake3 ${mypath}/cmake
 
+
 #scl enable devtoolset-4 -- bazel build --verbose_failures //source/exe:envoy-static
-scl enable devtoolset-4 -- bazel --bazelrc=/dev/null build --verbose_failures --copt "-DENVOY_IGNORE_GLIBCXX_USE_CXX11_ABI_ERROR=1" -c opt //source/exe:envoy-static ||:
-scl enable devtoolset-4 -- bazel --bazelrc=/dev/null build --verbose_failures --copt "-DENVOY_IGNORE_GLIBCXX_USE_CXX11_ABI_ERROR=1" -c opt //source/exe:envoy-static
-scl enable devtoolset-4 -- bazel shutdown
+
+export CC=clang
+export CXX=clang++
+
+bazel --bazelrc=/dev/null build --verbose_failures --copt "-DENVOY_IGNORE_GLIBCXX_USE_CXX11_ABI_ERROR=1" -c opt //source/exe:envoy-static ||:
+bazel --bazelrc=/dev/null build --verbose_failures --copt "-DENVOY_IGNORE_GLIBCXX_USE_CXX11_ABI_ERROR=1" -c opt //source/exe:envoy-static
+bazel shutdown
 
 %else
-bazel --bazelrc=/dev/null build --verbose_failures -c opt //source/exe:envoy-static ||:
+bazel --bazllrc=/dev/null build --verbose_failures -c opt //source/exe:envoy-static ||:
 bazel --bazelrc=/dev/null build --verbose_failures -c opt //source/exe:envoy-static
 bazel shutdown
 %endif

@@ -1,2 +1,4 @@
 SRPMS/
 *.rpm
+*.zip
+envoy-*/
