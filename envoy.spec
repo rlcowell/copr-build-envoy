@@ -93,6 +93,8 @@ export CXX=g++
 ln -sf /usr/bin/ninja-build ${mypath}/ninja # https://bugzilla.redhat.com/show_bug.cgi?id=1608565
 ln -sf /usr/bin/cmake3 ${mypath}/cmake
 
+source /opt/rh/rh-git218/enable
+source /opt/rh/llvm-toolset-7/enable
 
 #scl enable devtoolset-4 -- bazel build --verbose_failures //source/exe:envoy-static
 
